@@ -18,16 +18,19 @@ document.getElementById("sbm").addEventListener("click", function (e) {
         body: data
     };
     
-    fetch(url, options).then(res => res.json()).then(data => {
-        document.getElementById("res").innerHTML = data.data.translatedText;
-    });
+    fetch(url, options)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("res").innerHTML = data.data.translatedText;
+            let text = data.data.translatedText; 
+            return text;
+        })
+        .catch(error => {
+            console.error('Error translating text:', error);
+        });
 });
 
-
-const alllangbtn = async () => {
-    let langdiv = document.getElementById("alllang")
-    langdiv.innerHTML = '';
-    
+const alllangbtn = () => {
     const url = 'https://text-translator2.p.rapidapi.com/getLanguages';
     const options = {
         method: 'GET',
@@ -36,21 +39,45 @@ const alllangbtn = async () => {
             'x-rapidapi-host': 'text-translator2.p.rapidapi.com'
         }
     };
-    
-    fetch(url, options).then(res = res.json()).then(data => {
-        let languages = Array();
-        languages = data.data.languages;
-        
-        languages.forEach((e) => {
-            let btn = document.createElement('button');
-            btn.innerHTML = e.name;
-            btn.addEventListener('click', () => {
-            document.getElementById("inp-lang").value = e.code;
+
+    let langdiv = document.getElementById("all-lang");
+    langdiv.innerHTML = "";
+    langdiv.style.display = "grid";
+    langdiv.style.gridTemplateColumns = "repeat(auto-fit, minmax(100px, 1fr))";
+
+    fetch(url, options)
+        .then(res => res.json())
+        .then(data => {
+            let languages = data.data.languages;
+
+            languages.forEach(lang => {
+                let div = document.createElement("div");
+                let btn = document.createElement('button');
+                btn.style.margin = "9px";
+                btn.style.padding = "5px";
+                btn.style.width = "100px";
+                let btntext = document.createTextNode(lang.name);
+                btn.addEventListener('click', () => {
+                    document.getElementById("inp-lang").value = lang.code;
+                });
+                btn.appendChild(btntext);
+                div.appendChild(btn);
+                langdiv.appendChild(div);
             });
-
-
-            languages.appendChild(btn);
         })
-    })
-
+        .catch(error => {
+            console.error('Error fetching languages:', error);
+        });
+};
+let text = document.getElementById("res")
+function speak(text) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = speechSynthesis.getVoices();
+    utterance.voice = voices[0];
+    speechSynthesis.speak(utterance);
 }
+window.onload = function() {
+    speak("Hello, welcome to our translation app.");
+};
+
+alllangbtn();
